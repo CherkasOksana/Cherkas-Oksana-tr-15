@@ -4,17 +4,17 @@ public class GameAccount
 {
     public class Match
     {
-        public double rate;
+        public GameAccount winner;
+        public GameAccount loser;
         public int GamesCount;
-        public string WinnerName;
-        public string LoserName;
+        public double rate;
 
-        public Match(double rate, int GamesCount, string WinnerName, string LoserName)
+        public Match(GameAccount winner, GameAccount loser, int GamesCount, double rate)
         {
-            this.rate = rate;
+            this.winner = winner;
+            this.loser = loser;
             this.GamesCount = GamesCount;
-            this.WinnerName = WinnerName;
-            this.LoserName = LoserName;
+            this.rate = rate;
         }
     }
     
@@ -34,20 +34,68 @@ public class GameAccount
         this.CurrentRating = CurrentRating;
     }
 
-    public void WinGame(string opponentName, double Rating, int GameCount)
+    public virtual void WinGame(BasePlay play)
     {
-        CurrentRating = CurrentRating + Rating;
-        MyMatches.Add(new Match(Rating, GameCount, UserName, opponentName));
+        CurrentRating = CurrentRating + play.AllMatches[^1].rate;
+        MyMatches.Add(new Match(play.AllMatches[^1].winner, play.AllMatches[^1].loser, play.AllMatches[^1].GamesCount, play.AllMatches[^1].rate));
     }
     
-    public void LoseGame(string opponentName, double Rating, int GameCount)
+    public virtual void LoseGame(BasePlay play)
     {
-        CurrentRating = CurrentRating - Rating;
-        MyMatches.Add(new Match(Rating, GameCount, opponentName, UserName));
+        CurrentRating = CurrentRating - play.AllMatches[^1].rate;
+        MyMatches.Add(new Match(play.AllMatches[^1].winner, play.AllMatches[^1].loser, play.AllMatches[^1].GamesCount, play.AllMatches[^1].rate));
     }
 
     public List<Match> GetStats()
     {
         return MyMatches;
+    }
+}
+
+public class DoubleRating : GameAccount
+{
+    public DoubleRating(string UserName, double CurrentRating) : base(UserName, CurrentRating)
+    {
+        this.UserName = UserName;
+        this.CurrentRating = CurrentRating;
+    }
+    public DoubleRating(double CurrentRating) : base(CurrentRating)
+    {
+        this.CurrentRating = CurrentRating;
+    }
+    public override void WinGame(BasePlay play)
+    {
+        CurrentRating = CurrentRating + 2 * play.AllMatches[^1].rate;
+        MyMatches.Add(new Match(play.AllMatches[^1].winner, play.AllMatches[^1].loser, play.AllMatches[^1].GamesCount, 2 * play.AllMatches[^1].rate));
+    }
+    
+    public override void LoseGame(BasePlay play)
+    {
+        CurrentRating = CurrentRating - 2 * play.AllMatches[^1].rate;
+        MyMatches.Add(new Match(play.AllMatches[^1].winner, play.AllMatches[^1].loser, play.AllMatches[^1].GamesCount, 2 * play.AllMatches[^1].rate));
+    }
+}
+
+public class HalfRating : GameAccount
+{
+    public HalfRating(string UserName, double CurrentRating) : base(UserName, CurrentRating)
+    {
+        this.UserName = UserName;
+        this.CurrentRating = CurrentRating;
+    }
+    public HalfRating(double CurrentRating) : base(CurrentRating)
+    {
+        this.CurrentRating = CurrentRating;
+    }
+    public override void WinGame(BasePlay play)
+    {
+        CurrentRating = CurrentRating + play.AllMatches[^1].rate/2;
+        MyMatches.Add(new Match(play.AllMatches[^1].winner, play.AllMatches[^1].loser, play.AllMatches[^1].GamesCount, play.AllMatches[^1].rate/2));
+    }
+    
+    public override void LoseGame(BasePlay play)
+    {
+        CurrentRating = CurrentRating - play.AllMatches[^1].rate/2;
+        MyMatches.Add(new Match(play.AllMatches[^1].winner, play.AllMatches[^1].loser, play.AllMatches[^1].GamesCount, play.AllMatches[^1].rate/2));
     }
 }
